@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Deontology Check</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    body {
+      background: #fdfdfd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      color: #333;
+    }
+    select {
+      padding: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .checklist {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .checklist label {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      cursor: pointer;
+      background: #f0f0f0;
+    }
+    .checklist label input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+    .checklist label.checked {
+      background: #d4edda;
+      transform: scale(1.02);
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      min-height: 1.5em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="title"></h1>
+    <label for="langSelect" id="langLabel"></label>
+    <select id="langSelect"></select>
+    <div class="checklist" id="checklist"></div>
+    <div class="result" id="result"></div>
+  </div>
+  <script>
+    var translations = {
+      "en": {
+        "ethical": "Deontology",
+        "langLabel": "Select your language:",
+        "items": [
+          "My decision is made freely according to my own desires and intentions.",
+          "My decision has no unfair, inequitable, or disrespectful effect.",
+          "My decision respects the truth of the causes that led me to make it.",
+          "My decision respects the rights of the people who will be affected by it.",
+          "My decision is morally obligatory, or is not morally forbidden, regardless of the circumstances.",
+          "My decision does not reduce the moral value of another person, in their eyes, in the eyes of others, or in my own eyes.",
+          "My decision does not intentionally inflict harm, injury, or wrongdoing on others, except if necessary to restore fairness and justice.",
+          "I will assume all the consequences of my decision."
+        ],
+        "result_ethical": "Your decision is ethical.",
+        "result_not_ethical": "Your decision is not ethical."
+      },
+      "fr": {
+        "ethical": "Déontologie",
+        "langLabel": "Choisissez votre langue :",
+        "items": [
+          "Ma décision est prise librement en fonction de mes propres désirs et intentions.",
+          "Ma décision n'a pas d'effet injuste, inéquitable ou irrespectueux.",
+          "Ma décision respecte la vérité des causes qui ont conduit à la prendre.",
+          "Ma décision respecte le droit des personnes qui en subiront les conséquences.",
+          "Ma décision n'est pas moralement interdite, indépendamment des circonstances.",
+          "Ma décision n'a pas pour effet de réduire la valeur morale d'une autre personne, à ses yeux, aux yeux des autres ou à mes yeux.",
+          "Ma décision n'inflige pas intentionnellement une nuisance, un mal ou un tort à autrui, sauf nécessité de rétablir l'équité et la justesse.",
+          "J'assumerai toutes les conséquences de ma décision."
+        ],
+        "result_ethical": "Votre décision est éthique.",
+        "result_not_ethical": "Votre décision n'est pas éthique."
+      },
+      "es": {
+        "ethical": "Deontología",
+        "langLabel": "Selecciona tu idioma:",
+        "items": [
+          "Mi decisión se toma libremente de acuerdo con mis propios deseos e intenciones.",
+          "Mi decisión no tiene un efecto injusto, inequitativo o irrespetuoso.",
+          "Mi decisión respeta la verdad de las causas que me llevaron a tomarla.",
+          "Mi decisión respeta los derechos de las personas que se verán afectadas por ella.",
+          "Mi decisión es moralmente obligatoria, o no está moralmente prohibida, independientemente de las circunstancias.",
+          "Mi decisión no reduce el valor moral de otra persona, a sus propios ojos, a los ojos de los demás o a mis propios ojos.",
+          "Mi decisión no inflige intencionalmente daño, perjuicio o agravio a otros, salvo que sea necesario para restablecer la equidad y la justicia.",
+          "Asumiré todas las consecuencias de mi decisión."
+        ],
+        "result_ethical": "Tu decisión es ética.",
+        "result_not_ethical": "Tu decisión no es ética."
+      },
+      "de": {
+        "ethical": "Deontologie",
+        "langLabel": "Wähle deine Sprache:",
+        "items": [
+          "Meine Entscheidung wird frei getroffen entsprechend meinen eigenen Wünschen und Absichten.",
+          "Meine Entscheidung hat keine ungerechte, unfaire oder respektlose Wirkung.",
+          "Meine Entscheidung respektiert die Wahrheit der Ursachen, die mich dazu geführt haben.",
+          "Meine Entscheidung respektiert die Rechte der Personen, die davon betroffen sein werden.",
+          "Meine Entscheidung ist moralisch verpflichtend oder nicht moralisch verboten, unabhängig von den Umständen.",
+          "Meine Entscheidung mindert nicht den moralischen Wert einer anderen Person, weder in ihren eigenen Augen, in den Augen anderer noch in meinen eigenen Augen.",
+          "Meine Entscheidung fügt anderen nicht absichtlich Schaden, Unrecht oder Verletzung zu, außer wenn es erforderlich ist, Gerechtigkeit und Fairness wiederherzustellen.",
+          "Ich übernehme alle Konsequenzen meiner Entscheidung."
+        ],
+        "result_ethical": "Deine Entscheidung ist ethisch.",
+        "result_not_ethical": "Deine Entscheidung ist nicht ethisch."
+      },
+      "it": {
+        "ethical": "Deontologia",
+        "langLabel": "Seleziona la tua lingua:",
+        "items": [
+          "La mia decisione è presa liberamente in base ai miei desideri e alle mie intenzioni.",
+          "La mia decisione non ha effetti ingiusti, iniqui o irrispettosi.",
+          "La mia decisione rispetta la verità delle cause che mi hanno portato a prenderla.",
+          "La mia decisione rispetta i diritti delle persone che ne subiranno le conseguenze.",
+          "La mia decisione non è moralmente vietata, indipendentemente dalle circostanze.",
+          "La mia decisione non riduce il valore morale di un'altra persona, ai suoi occhi, agli occhi degli altri o ai miei.",
+          "La mia decisione non infligge intenzionalmente danno, male o torto ad altri, a meno che non sia necessario per ripristinare l'equità e la giustizia.",
+          "Assumerò tutte le conseguenze della mia decisione."
+        ],
+        "result_ethical": "La tua decisione è etica.",
+        "result_not_ethical": "La tua decisione non è etica."
+      },
+      "pt": {
+        "ethical": "Deontologia",
+        "langLabel": "Selecione seu idioma:",
+        "items": [
+          "Minha decisão é tomada livremente de acordo com meus próprios desejos e intenções.",
+          "Minha decisão não tem efeito injusto, desigual ou desrespeitoso.",
+          "Minha decisão respeita a verdade das causas que me levaram a tomá-la.",
+          "Minha decisão respeita os direitos das pessoas que serão afetadas por ela.",
+          "Minha decisão é moralmente obrigatória, ou não é moralmente proibida, independentemente das circunstâncias.",
+          "Minha decisão não reduz o valor moral de outra pessoa, aos olhos dela, aos olhos dos outros ou aos meus próprios olhos.",
+          "Minha decisão não inflige intencionalmente dano, mal ou prejuízo a outros, exceto quando necessário para restaurar a equidade e a justiça.",
+          "Assumirei todas as consequências da minha decisão."
+        ],
+        "result_ethical": "Sua decisão é ética.",
+        "result_not_ethical": "Sua decisão não é ética."
+      },
+      "nl": {
+        "ethical": "Deontologie",
+        "langLabel": "Selecteer je taal:",
+        "items": [
+          "Mijn beslissing wordt vrij genomen volgens mijn eigen wensen en intenties.",
+          "Mijn beslissing heeft geen oneerlijk, ongelijk of respectloos effect.",
+          "Mijn beslissing respecteert de waarheid van de oorzaken die mij ertoe hebben gebracht.",
+          "Mijn beslissing respecteert de rechten van de mensen die erdoor worden getroffen.",
+          "Mijn beslissing is moreel verplicht, of is niet moreel verboden, ongeacht de omstandigheden.",
+          "Mijn beslissing vermindert de morele waarde van een ander niet, in hun eigen ogen, in de ogen van anderen of in mijn ogen.",
+          "Mijn beslissing berokkent anderen niet opzettelijk nadeel, schade of onrecht, behalve als het nodig is om eerlijkheid en rechtvaardigheid te herstellen.",
+          "Ik zal alle gevolgen van mijn beslissing dragen."
+        ],
+        "result_ethical": "Je beslissing is ethisch.",
+        "result_not_ethical": "Je beslissing is niet ethisch."
+      },
+      "sv": {
+        "ethical": "Deontologi",
+        "langLabel": "Välj ditt språk:",
+        "items": [
+          "Mitt beslut fattas fritt utifrån mina egna önskemål och avsikter.",
+          "Mitt beslut har ingen orättvis, orättfärdig eller respektlös effekt.",
+          "Mitt beslut respekterar sanningen om de orsaker som ledde mig till det.",
+          "Mitt beslut respekterar rättigheterna för dem som påverkas av det.",
+          "Mitt beslut är moraliskt obligatoriskt, eller inte moraliskt förbjudet, oavsett omständigheterna.",
+          "Mitt beslut minskar inte en annan persons moraliska värde, varken i deras egna ögon, i andras ögon eller i mina egna.",
+          "Mitt beslut orsakar inte avsiktligt skada, ont eller orätt mot andra, förutom när det är nödvändigt för att återställa rättvisa och rättfärdighet.",
+          "Jag tar på mig alla konsekvenser av mitt beslut."
+        ],
+        "result_ethical": "Ditt beslut är etiskt.",
+        "result_not_ethical": "Ditt beslut är inte etiskt."
+      },
+      "no": {
+        "ethical": "Deontologi",
+        "langLabel": "Velg språk:",
+        "items": [
+          "Min avgjørelse tas fritt i henhold til mine egne ønsker og intensjoner.",
+          "Min avgjørelse har ingen urettferdig, urett eller respektløs effekt.",
+          "Min avgjørelse respekterer sannheten om årsakene som førte meg til den.",
+          "Min avgjørelse respekterer rettighetene til de som blir berørt av den.",
+          "Min avgjørelse er moralsk forpliktende eller ikke moralsk forbudt, uavhengig av omstendighetene.",
+          "Min avgjørelse reduserer ikke den moralske verdien til en annen person, verken i deres egne øyne, i andres øyne eller i mine egne.",
+          "Min avgjørelse påfører ikke med vilje skade, ondt eller urett mot andre, bortsett fra når det er nødvendig for å gjenopprette rettferdighet og rettskaffenhet.",
+          "Jeg vil ta alle konsekvensene av min avgjørelse."
+        ],
+        "result_ethical": "Din avgjørelse er etisk.",
+        "result_not_ethical": "Din avgjørelse er ikke etisk."
+      },
+      "fi": {
+        "ethical": "Deontologia",
+        "langLabel": "Valitse kieli:",
+        "items": [
+          "Päätökseni tehdään vapaasti omien toiveideni ja tarkoitusteni mukaisesti.",
+          "Päätökselläni ei ole epäreilua, epäoikeudenmukaista tai epäkunnioittavaa vaikutusta.",
+          "Päätökseni kunnioittaa todenmukaisuutta niistä syistä, jotka johtivat minut tekemään sen.",
+          "Päätökseni kunnioittaa niiden henkilöiden oikeuksia, joihin se vaikuttaa.",
+          "Päätökseni ei ole moraalisesti kielletty, riippumatta olosuhteista.",
+          "Päätökseni ei vähennä toisen henkilön moraalista arvoa, ei heidän omissa silmissään, muiden silmissä eikä omissani.",
+          "Päätökseni ei tietoisesti aiheuta haittaa, vahinkoa tai vääryyttä muille, paitsi jos se on tarpeen oikeudenmukaisuuden ja kohtuuden palauttamiseksi.",
+          "Otan vastuun kaikista päätökseni seurauksista."
+        ],
+        "result_ethical": "Päätöksesi on eettinen.",
+        "result_not_ethical": "Päätöksesi ei ole eettinen."
+      },
+      "ru": {
+        "ethical": "Деонтология",
+        "langLabel": "Выберите язык:",
+        "items": [
+          "Моё решение принято свободно в соответствии с моими собственными желаниями и намерениями.",
+          "Моё решение не оказывает несправедливого, неравного или неуважительного воздействия.",
+          "Моё решение уважает истину о причинах, которые привели меня к нему.",
+          "Моё решение уважает права людей, на которых оно повлияет.",
+          "Моё решение морально обязательно или не является морально запрещённым, независимо от обстоятельств.",
+          "Моё решение не умаляет моральную ценность другого человека ни в его глазах, ни в глазах других, ни в моих собственных.",
+          "Моё решение не наносит намеренно вред, ущерб или обиду другим, за исключением случаев, когда это необходимо для восстановления справедливости и честности.",
+          "Я возьму на себя все последствия своего решения."
+        ],
+        "result_ethical": "Ваше решение является этичным.",
+        "result_not_ethical": "Ваше решение не является этичным."
+      },
+      "ja": {
+        "ethical": "デオントロジー",
+        "langLabel": "言語を選択してください:",
+        "items": [
+          "私の決定は、私自身の望みと意図に従って自由に行われます。",
+          "私の決定は、不公平、不平等、または無礼な影響を及ぼしません。",
+          "私の決定は、それを下すに至った原因の真実を尊重します。",
+          "私の決定は、それによって影響を受ける人々の権利を尊重します。",
+          "私の決定は道徳的に禁止されていません、状況にかかわらず。",
+          "私の決定は、他者の道徳的価値を、本人の目にも、他人の目にも、私自身の目にも損なうものではありません。",
+          "私の決定は、必要に応じて公正さと正義を回復する場合を除き、意図的に他者に害や悪、過ちをもたらしません。",
+          "私は、自分の決定のすべての結果を引き受けます。"
+        ],
+        "result_ethical": "あなたの決定は倫理的です。",
+        "result_not_ethical": "あなたの決定は倫理的ではありません。"
+      },
+      "zh": {
+        "ethical": "义务论",
+        "langLabel": "选择语言：",
+        "items": [
+          "我的决定是根据我自己的愿望和意图自由做出的。",
+          "我的决定不会产生不公平、不平等或不尊重的影响。",
+          "我的决定尊重导致我做出这一决定的原因的真相。",
+          "我的决定尊重将受到这一决定影响的人的权利。",
+          "我的决定在道德上是必须的，或者在任何情况下都不被道德禁止。",
+          "我的决定不会降低他人的道德价值，无论是在他们自己的眼中、他人的眼中，还是在我自己的眼中。",
+          "我的决定不会故意对他人造成损害、伤害或不公，除非这是恢复公平和正义所必需的。",
+          "我将承担我的决定所带来的一切后果。"
+        ],
+        "result_ethical": "你的决定是合乎道德的。",
+        "result_not_ethical": "你的决定不合乎道德。"
+      },
+      "ar": {
+        "ethical": "ديونتولوجيا",
+        "langLabel": "اختر لغتك:",
+        "items": [
+          "قراري مُتَّخَذ بحرية وفقًا لرغباتي ونواياي الخاصة.",
+          "قراري ليس له تأثير ظالم أو غير عادل أو ينم عن عدم الاحترام.",
+          "قراري يحترم حقيقة الأسباب التي دفعتني لاتخاذه.",
+          "قراري يحترم حقوق الأشخاص الذين سيتأثرون به.",
+          "قراري مُلزِم أخلاقيًا، أو غير محظور أخلاقيًا، بغض النظر عن الظروف.",
+          "قراري لا يقلل من القيمة الأخلاقية لشخص آخر في نظره أو نظر الآخرين أو نظري.",
+          "قراري لا يلحق بالآخرين ضررًا أو أذى أو ظلمًا عن عمد، إلا إذا كانت هناك ضرورة لاستعادة الإنصاف والعدالة.",
+          "سأتحمل جميع عواقب قراري."
+        ],
+        "result_ethical": "قرارك أخلاقي.",
+        "result_not_ethical": "قرارك ليس أخلاقيًا."
+      },
+      "he": {
+        "ethical": "דאונטולוגיה",
+        "langLabel": "בחר את שפתך:",
+        "items": [
+          "ההחלטה שלי מתקבלת בחופשיות בהתאם לרצונותיי ולכוונותיי שלי.",
+          "להחלטה שלי אין השפעה לא הוגנת, לא שוויונית או לא מכבדת.",
+          "ההחלטה שלי מכבדת את האמת של הסיבות שהובילו אותי לקבלה.",
+          "ההחלטה שלי מכבדת את זכויות האנשים שיושפעו ממנה.",
+          "ההחלטה שלי אינה אסורה מבחינה מוסרית, ללא תלות בנסיבות.",
+          "ההחלטה שלי אינה מפחיתה את הערך המוסרי של אדם אחר, בעיניו, בעיני אחרים או בעיניי.",
+          "ההחלטה שלי אינה גורמת ביודעין נזק, פגיעה או עוול לאחרים.",
+          "אקבל על עצמי את כל ההשלכות של ההחלטה שלי."
+        ],
+        "result_ethical": "ההחלטה שלך מוסרית.",
+        "result_not_ethical": "ההחלטה שלך אינה מוסרית."
+      },
+      "el": {
+        "ethical": "Δεοντολογία",
+        "langLabel": "Επιλέξτε τη γλώσσα σας:",
+        "items": [
+          "Η απόφασή μου λαμβάνεται ελεύθερα σύμφωνα με τις δικές μου επιθυμίες και προθέσεις.",
+          "Η απόφασή μου δεν έχει άδικη, άνιση ή ασέβη επίδραση.",
+          "Η απόφασή μου σέβεται την αλήθεια των αιτιών που με οδήγησαν σε αυτήν.",
+          "Η απόφασή μου σέβεται τα δικαιώματα των ανθρώπων που θα επηρεαστούν από αυτήν.",
+          "Η απόφασή μου δεν απαγορεύεται ηθικά, ανεξάρτητα από τις περιστάσεις.",
+          "Η απόφασή μου δεν μειώνει την ηθική αξία ενός άλλου ατόμου, στα μάτια του, στα μάτια των άλλων ή στα δικά μου.",
+          "Η απόφασή μου δεν προκαλεί εκ προθέσεως βλάβη ή αδικία σε άλλους.",
+          "Αναλαμβάνω όλες τις συνέπειες της απόφασής μου."
+        ],
+        "result_ethical": "Η απόφασή σου είναι ηθική.",
+        "result_not_ethical": "Η απόφασή σου δεν είναι ηθική."
+      },
+      "pl": {
+        "ethical": "Deontologia",
+        "langLabel": "Wybierz swój język:",
+        "items": [
+          "Moja decyzja jest podejmowana dobrowolnie zgodnie z moimi własnymi pragnieniami i intencjami.",
+          "Moja decyzja nie ma niesprawiedliwego, nierównego ani lekceważącego skutku.",
+          "Moja decyzja szanuje prawdę o przyczynach, które doprowadziły mnie do jej podjęcia.",
+          "Moja decyzja szanuje prawa osób, których dotyczy.",
+          "Moja decyzja jest moralnie obowiązująca lub nie jest moralnie zabroniona, niezależnie od okoliczności.",
+          "Moja decyzja nie pomniejsza wartości moralnej innej osoby, w jej oczach, w oczach innych ani w moich własnych.",
+          "Moja decyzja nie wyrządza innym celowo krzywdy, szkody lub niesprawiedliwości, poza sytuacjami koniecznymi do przywrócenia uczciwości i sprawiedliwości.",
+          "Poniosę wszelkie konsekwencje mojej decyzji."
+        ],
+        "result_ethical": "Twoja decyzja jest etyczna.",
+        "result_not_ethical": "Twoja decyzja nie jest etyczna."
+      },
+      "ro": {
+        "ethical": "Deontologie",
+        "langLabel": "Selectează limba:",
+        "items": [
+          "Decizia mea este luată în mod liber, în conformitate cu propriile mele dorințe și intenții.",
+          "Decizia mea nu are niciun efect nedrept, inechitabil sau lipsit de respect.",
+          "Decizia mea respectă adevărul cauzelor care m-au condus la a o lua.",
+          "Decizia mea respectă drepturile persoanelor care vor fi afectate de aceasta.",
+          "Decizia mea nu este interzisă moral, indiferent de circumstanțe.",
+          "Decizia mea nu reduce valoarea morală a altei persoane, în ochii ei, în ochii altora sau în ochii mei.",
+          "Decizia mea nu cauzează în mod intenționat vătămare, rău sau nedreptate altora.",
+          "Voi asuma toate consecințele deciziei mele."
+        ],
+        "result_ethical": "Decizia ta este etică.",
+        "result_not_ethical": "Decizia ta nu este etică."
+      },
+      "hu": {
+        "ethical": "Deontológia",
+        "langLabel": "Válassz nyelvet:",
+        "items": [
+          "A döntésemet szabadon hozom meg a saját vágyaim és szándékaim alapján.",
+          "A döntésemnek nincs igazságtalan, méltánytalan vagy tiszteletlen hatása.",
+          "A döntésem tiszteletben tartja azokat az okokat, amelyek ehhez vezettek.",
+          "A döntésem tiszteletben tartja azoknak a személyeknek a jogait, akiket ez érint.",
+          "A döntésem erkölcsileg kötelező, vagy nincs erkölcsileg tiltva, függetlenül a körülményektől.",
+          "A döntésem nem csökkenti más személy erkölcsi értékét sem az ő szemében, sem mások szemében, sem a sajátomban.",
+          "A döntésem nem okoz szándékosan kárt, rosszat vagy igazságtalanságot másoknak, kivéve ha szükséges az igazságosság és méltányosság helyreállításához.",
+          "Vállalom a döntésem minden következményét."
+        ],
+        "result_ethical": "A döntésed etikus.",
+        "result_not_ethical": "A döntésed nem etikus."
+      },
+      "cs": {
+        "ethical": "Deontologie",
+        "langLabel": "Zvolte svůj jazyk:",
+        "items": [
+          "Mé rozhodnutí je činěno svobodně podle mých vlastních přání a záměrů.",
+          "Mé rozhodnutí nemá nespravedlivý, nerovný ani neuctivý dopad.",
+          "Mé rozhodnutí respektuje pravdu o příčinách, které mě k němu vedly.",
+          "Mé rozhodnutí respektuje práva osob, které jím budou ovlivněny.",
+          "Mé rozhodnutí je morálně závazné, nebo není morálně zakázané, bez ohledu na okolnosti.",
+          "Mé rozhodnutí nesnižuje morální hodnotu jiné osoby, v jejích očích, v očích ostatních nebo v mých vlastních.",
+          "Mé rozhodnutí záměrně nezpůsobuje škodu, újmu nebo nespravedlnost ostatním.",
+          "Převezmu veškeré důsledky svého rozhodnutí."
+        ],
+        "result_ethical": "Tvoje rozhodnutí je etické.",
+        "result_not_ethical": "Tvoje rozhodnutí není etické."
+      }
+    };
+    var langSelect = document.getElementById("langSelect");
+    var titleElement = document.getElementById("title");
+    var langLabelElement = document.getElementById("langLabel");
+    var checklistContainer = document.getElementById("checklist");
+    var resultElement = document.getElementById("result");
+    function populateLanguages() {
+      for (var lang in translations) {
+        var option = document.createElement("option");
+        option.value = lang;
+        option.textContent = lang.toUpperCase();
+        langSelect.appendChild(option);
+      }
+    }
+    function updateUI(lang) {
+      var t = translations[lang];
+      titleElement.textContent = t.ethical + " Check";
+      langLabelElement.textContent = t.langLabel;
+      var states = [];
+      var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
+      checkboxes.forEach(function(cb, idx) {
+        states[idx] = cb.checked;
+      });
+      checklistContainer.innerHTML = "";
+      t.items.forEach(function(itemText, index) {
+        var label = document.createElement("label");
+        var checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "checkbox" + index;
+        if (states[index]) {
+          checkbox.checked = true;
+          label.classList.add("checked");
+        }
+        checkbox.addEventListener("change", function(e) {
+          if (e.target.checked) {
+            label.classList.add("checked");
+          } else {
+            label.classList.remove("checked");
+          }
+          checkAll();
+        });
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(itemText));
+        checklistContainer.appendChild(label);
+      });
+      checkAll();
+    }
+    function checkAll() {
+      var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
+      var allChecked = true;
+      checkboxes.forEach(function(cb) {
+        if (!cb.checked) { allChecked = false; }
+      });
+      var currentLang = langSelect.value;
+      resultElement.textContent = allChecked ? translations[currentLang].result_ethical : translations[currentLang].result_not_ethical;
+    }
+    populateLanguages();
+    var userLang = (navigator.language || navigator.userLanguage).slice(0,2).toLowerCase();
+    if (!(userLang in translations)) { userLang = "en"; }
+    langSelect.value = userLang;
+    updateUI(userLang);
+    langSelect.addEventListener("change", function() { updateUI(langSelect.value); });
+  </script>
+</body>
+
+<!-- Done with ChatGPT which was not ethical... -->
+</html>
