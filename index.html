@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Deontology Check</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    body {
+      background: #fdfdfd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      color: #333;
+    }
+    select {
+      padding: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .checklist {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .checklist label {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      cursor: pointer;
+      background: #f0f0f0;
+    }
+    .checklist label input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+    .checklist label.checked {
+      background: #d4edda;
+      transform: scale(1.02);
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      min-height: 1.5em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="title"></h1>
+    <label for="langSelect" id="langLabel"></label>
+    <select id="langSelect"></select>
+    <div class="checklist" id="checklist"></div>
+    <div class="result" id="result"></div>
+  </div>
+  <script>
+    var translations = {
+      "fr": {
+        "ethical": "Déontologie",
+        "langLabel": "Choisissez votre langue :",
+        "items": [
+          "Mon action est prise librement en fonction de mes propres désirs et intentions.",
+          "Mon action n'a pas d'effet injuste, inéquitable ou irrespectueux.",
+          "Mon action respecte la vérité des causes qui ont conduit à la prendre.",
+          "Mon action respecte le droit des personnes qui en subiront les conséquences.",
+          "Mon action n'est pas moralement interdite, indépendamment des circonstances.",
+          "Mon action n'a pas pour effet de réduire la valeur morale d'une autre personne, à ses yeux, aux yeux des autres ou à mes yeux.",
+          "Mon action n'inflige pas intentionnellement une nuisance, un mal ou un tort à autrui, sauf nécessité de rétablir l'équité et la justesse.",
+          "J'assumerai toutes les conséquences de mon action."
+        ],
+        "result_ethical": "Votre action est éthique.",
+        "result_not_ethical": "Votre action n'est pas éthique."
+      }
+    };
+    var langSelect = document.getElementById("langSelect");
+    var titleElement = document.getElementById("title");
+    var langLabelElement = document.getElementById("langLabel");
+    var checklistContainer = document.getElementById("checklist");
+    var resultElement = document.getElementById("result");
+    function populateLanguages() {
+      for (var lang in translations) {
+        var option = document.createElement("option");
+        option.value = lang;
+        option.textContent = lang.toUpperCase();
+        langSelect.appendChild(option);
+      }
+    }
+    function updateUI(lang) {
+      var t = translations[lang];
+      titleElement.textContent = t.ethical + " Check";
+      langLabelElement.textContent = t.langLabel;
+      var states = [];
+      var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
+      checkboxes.forEach(function(cb, idx) {
+        states[idx] = cb.checked;
+      });
+      checklistContainer.innerHTML = "";
+      t.items.forEach(function(itemText, index) {
+        var label = document.createElement("label");
+        var checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "checkbox" + index;
+        if (states[index]) {
+          checkbox.checked = true;
+          label.classList.add("checked");
+        }
+        checkbox.addEventListener("change", function(e) {
+          if (e.target.checked) {
+            label.classList.add("checked");
+          } else {
+            label.classList.remove("checked");
+          }
+          checkAll();
+        });
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(itemText));
+        checklistContainer.appendChild(label);
+      });
+      checkAll();
+    }
+    function checkAll() {
+      var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
+      var allChecked = true;
+      checkboxes.forEach(function(cb) {
+        if (!cb.checked) { allChecked = false; }
+      });
+      var currentLang = langSelect.value;
+      resultElement.textContent = allChecked ? translations[currentLang].result_ethical : translations[currentLang].result_not_ethical;
+    }
+    populateLanguages();
+    var userLang = (navigator.language || navigator.userLanguage).slice(0,2).toLowerCase();
+    if (!(userLang in translations)) { userLang = "en"; }
+    langSelect.value = userLang;
+    updateUI(userLang);
+    langSelect.addEventListener("change", function() { updateUI(langSelect.value); });
+  </script>
+</body>
+</html>
