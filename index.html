@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,84 +86,120 @@
   </div>
   <script>
     var translations = {
-      "fr": {
-        "ethical": "Déontologie",
-        "langLabel": "Choisissez votre langue :",
-        "items": [
-          "Mon action est prise librement en fonction de mes propres désirs et intentions.",
-          "Mon action n'a pas d'effet injuste, inéquitable ou irrespectueux.",
-          "Mon action respecte la vérité des causes qui ont conduit à la prendre.",
-          "Mon action respecte le droit des personnes qui en subiront les conséquences.",
-          "Mon action n'est pas moralement interdite, indépendamment des circonstances.",
-          "Mon action n'a pas pour effet de réduire la valeur morale d'une autre personne, à ses yeux, aux yeux des autres ou à mes yeux.",
-          "Mon action n'inflige pas intentionnellement une nuisance, un mal ou un tort à autrui, sauf nécessité de rétablir l'équité et la justesse.",
-          "J'assumerai toutes les conséquences de mon action."
-        ],
-        "result_ethical": "Votre action est éthique.",
-        "result_not_ethical": "Votre action n'est pas éthique."
-      }
-    };
+  "undefined": {
+    "ethical": "Deontology",
+    "langLabel": "Select your language:",
+    "items": [
+      "hello",
+      "world",
+      "bonjour"
+    ],
+    "result_ethical": "Your decision is ethical.",
+    "result_not_ethical": "Your decision is not ethical."
+  },
+  "fr": {
+    "ethical": "Deontology",
+    "langLabel": "Select your language:",
+    "items": [
+      "Mon action est prise librement en fonction de mes propres désirs et intentions.",
+      "Mon action n'a pas d'effet injuste, inéquitable ou irrespectueux.",
+      "Mon action respecte la vérité des causes qui ont conduit à la prendre.",
+      "Mon action respecte le droit des personnes qui en subiront les conséquences.",
+      "Mon action n'est pas moralement interdite, indépendamment des circonstances.",
+      "Mon action n'a pas pour effet de réduire la valeur morale d'une autre personne, à ses yeux, aux yeux des autres ou à mes yeux.",
+      "Mon action n'inflige pas intentionnellement une nuisance, un mal ou un tort à autrui, sauf nécessité de rétablir l'équité et la justesse.",
+      "J'assumerai toutes les conséquences de mon action."
+    ],
+    "result_ethical": "Your decision is ethical.",
+    "result_not_ethical": "Your decision is not ethical."
+  }
+};
     var langSelect = document.getElementById("langSelect");
     var titleElement = document.getElementById("title");
     var langLabelElement = document.getElementById("langLabel");
     var checklistContainer = document.getElementById("checklist");
     var resultElement = document.getElementById("result");
+    var statesByLang = {};
+
     function populateLanguages() {
+      langSelect.innerHTML = "";
+      let storedLang = localStorage.getItem("userLang");
+      let firstLang = null;
       for (var lang in translations) {
+        if (!lang || lang === "undefined") continue;
         var option = document.createElement("option");
         option.value = lang;
         option.textContent = lang.toUpperCase();
+        if (!firstLang) firstLang = lang;
         langSelect.appendChild(option);
       }
+      if (storedLang && translations[storedLang]) {
+        langSelect.value = storedLang;
+      } else {
+        if (firstLang) {
+          langSelect.value = firstLang;
+        }
+      }
     }
+
     function updateUI(lang) {
+      var storedStates = statesByLang[lang] || [];
       var t = translations[lang];
       titleElement.textContent = t.ethical + " Check";
       langLabelElement.textContent = t.langLabel;
-      var states = [];
       var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
-      checkboxes.forEach(function(cb, idx) {
-        states[idx] = cb.checked;
+      var oldStates = [];
+      checkboxes.forEach(function(cb, i) {
+        oldStates[i] = cb.checked;
       });
       checklistContainer.innerHTML = "";
-      t.items.forEach(function(itemText, index) {
+      t.items.forEach(function(txt, i) {
         var label = document.createElement("label");
         var checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.id = "checkbox" + index;
-        if (states[index]) {
+        if (storedStates[i]) {
           checkbox.checked = true;
           label.classList.add("checked");
         }
-        checkbox.addEventListener("change", function(e) {
-          if (e.target.checked) {
-            label.classList.add("checked");
-          } else {
-            label.classList.remove("checked");
-          }
+        checkbox.onchange = function() {
+          if (this.checked) label.classList.add("checked");
+          else label.classList.remove("checked");
           checkAll();
-        });
+        };
         label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(itemText));
+        label.appendChild(document.createTextNode(txt));
         checklistContainer.appendChild(label);
       });
       checkAll();
     }
+
     function checkAll() {
+      let allChecked = true;
       var checkboxes = checklistContainer.querySelectorAll("input[type=checkbox]");
-      var allChecked = true;
-      checkboxes.forEach(function(cb) {
-        if (!cb.checked) { allChecked = false; }
-      });
       var currentLang = langSelect.value;
-      resultElement.textContent = allChecked ? translations[currentLang].result_ethical : translations[currentLang].result_not_ethical;
+      statesByLang[currentLang] = [];
+      checkboxes.forEach((cb, i) => {
+        statesByLang[currentLang][i] = cb.checked;
+        if (!cb.checked) {
+          allChecked = false;
+        }
+      });
+      if (!translations[currentLang]) {
+        resultElement.textContent = "";
+        return;
+      }
+      resultElement.textContent = allChecked
+        ? translations[currentLang].result_ethical
+        : translations[currentLang].result_not_ethical;
     }
+
+    langSelect.addEventListener("change", function() {
+      localStorage.setItem("userLang", langSelect.value);
+      updateUI(langSelect.value);
+    });
+
     populateLanguages();
-    var userLang = (navigator.language || navigator.userLanguage).slice(0,2).toLowerCase();
-    if (!(userLang in translations)) { userLang = "en"; }
-    langSelect.value = userLang;
-    updateUI(userLang);
-    langSelect.addEventListener("change", function() { updateUI(langSelect.value); });
+    updateUI(langSelect.value);
   </script>
 </body>
 </html>
